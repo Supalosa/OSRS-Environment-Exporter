@@ -1,6 +1,7 @@
 package controllers.worldRenderer
 
 import cache.LocationType
+import cache.utils.Vec3F
 import controllers.worldRenderer.helpers.AlphaMode
 import controllers.worldRenderer.helpers.Animator
 import controllers.worldRenderer.shaders.Shader
@@ -11,6 +12,7 @@ import models.config.ConfigOptions
 import models.scene.REGION_SIZE
 import models.scene.Scene
 import models.scene.SceneTile
+import org.joml.Vector4f
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL.createCapabilities
 import org.lwjgl.opengl.GL11C.GL_BLEND
@@ -92,6 +94,26 @@ class Renderer(
     private val pendingGlThreadActions = ConcurrentLinkedQueue<Runnable>()
     val sceneDrawListeners = ArrayList<SceneDrawListener>() // TODO concurrent?
 
+    fun projectPoint(x: Int, y: Int): Int {
+        var matrix = getViewProjectionMatrix(camera, canvasWidth, canvasHeight);
+        System.out.println("original matrix: " + matrix.toString());
+        matrix = matrix.invert();
+
+        var vec = Vector4f(x / canvasWidth.toFloat()  * 2f - 1f, -(y / canvasHeight.toFloat()) * 2f + 1, 0.5f, 1f)
+        var pos = vec.mul(matrix)
+        System.out.println("vec: " + vec.toString());
+        System.out.println("matrix: " + matrix.toString());
+        System.out.println("pos: " + pos.toString());
+
+        pos.w = 1.0f / pos.w;
+        pos.x *= pos.w;
+        pos.y *= pos.w;
+        pos.z *= pos.w;
+
+        System.out.println(pos.x.toString() + "," + pos.y.toString() + "," + pos.z.toString());
+        return 0
+    }
+
     fun initCanvas(): AWTGLCanvas {
         // center camera in viewport
         camera.centerX = canvasWidth / 2
@@ -124,7 +146,7 @@ class Renderer(
             }
         }
 
-        inputHandler = InputHandler(glCanvas, camera, scene, configOptions, frameRateModel)
+        inputHandler = InputHandler(glCanvas, camera, scene, this, configOptions, frameRateModel)
         glCanvas.addKeyListener(inputHandler)
         glCanvas.addMouseListener(inputHandler)
         glCanvas.addMouseMotionListener(inputHandler)

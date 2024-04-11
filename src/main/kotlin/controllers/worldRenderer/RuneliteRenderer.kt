@@ -209,7 +209,7 @@ open class RuneliteRenderer(
             0f, 0f, -2 * near, 0f,
         )
 
-    private fun calculateViewProjectionMatrix(camera: Camera, canvasWidth: Int, canvasHeight: Int): FloatArray {
+    internal fun getViewProjectionMatrix(camera: Camera, canvasWidth: Int, canvasHeight: Int): Matrix4f {
         val projectionMatrix = makeProjectionMatrix(
             canvasWidth.toFloat(),
             canvasHeight.toFloat(),
@@ -221,7 +221,15 @@ open class RuneliteRenderer(
             .rotateX((-Math.PI + camera.pitchRads).toFloat())
             .rotateY(camera.yawRads.toFloat())
             .translate(-camera.cameraX.toFloat(), -camera.cameraZ.toFloat(), -camera.cameraY.toFloat())
-            .get(projectionMatrix)
+    }
+
+    internal fun calculateViewProjectionMatrix(camera: Camera, canvasWidth: Int, canvasHeight: Int): FloatArray {
+        val projectionMatrix = makeProjectionMatrix(
+            canvasWidth.toFloat(),
+            canvasHeight.toFloat(),
+            50.0f
+        )
+        return getViewProjectionMatrix(camera, canvasWidth, canvasHeight).get(projectionMatrix);
     }
 
     internal fun prepareDrawProgram(camera: Camera, canvasWidth: Int, canvasHeight: Int, clientCycle: Int) {

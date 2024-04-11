@@ -20,6 +20,7 @@ class InputHandler internal constructor(
     private val parent: Component,
     private val camera: Camera,
     private val scene: Scene,
+    private val renderer: Renderer,
     private val configOptions: ConfigOptions,
     private val frameRateModel: FrameRateModel,
 ) : KeyListener, MouseListener, MouseMotionListener {
@@ -145,12 +146,9 @@ class InputHandler internal constructor(
     override fun mouseEntered(e: MouseEvent) {}
     override fun mouseExited(e: MouseEvent) {}
     override fun mousePressed(e: MouseEvent) {
-        // projection code
-        var vec = Vec3F(e.x / parent.width.toFloat(),  -(e.y / parent.height.toFloat()), 0.5f);
 
-        System.out.println(vec.x.toString() + "," + vec.y.toString() + "," + vec.z.toString());
-
-
+        val point = renderer.projectPoint(e.x, e.y);
+        System.out.println(point);
 
         if (e.button == MouseEvent.BUTTON3) {
             isRightMouseDown = true
