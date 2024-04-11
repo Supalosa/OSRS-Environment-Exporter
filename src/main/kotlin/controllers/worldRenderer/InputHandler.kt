@@ -1,5 +1,6 @@
 package controllers.worldRenderer
 
+import cache.utils.Vec3F
 import models.FrameRateModel
 import models.config.ConfigOptions
 import models.scene.Scene
@@ -144,6 +145,13 @@ class InputHandler internal constructor(
     override fun mouseEntered(e: MouseEvent) {}
     override fun mouseExited(e: MouseEvent) {}
     override fun mousePressed(e: MouseEvent) {
+        // projection code
+        var vec = Vec3F(e.x / parent.width.toFloat(),  -(e.y / parent.height.toFloat()), 0.5f);
+
+        System.out.println(vec.x.toString() + "," + vec.y.toString() + "," + vec.z.toString());
+
+
+
         if (e.button == MouseEvent.BUTTON3) {
             isRightMouseDown = true
             previousMouseX = e.x
