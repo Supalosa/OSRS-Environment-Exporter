@@ -95,14 +95,19 @@ class Renderer(
     val sceneDrawListeners = ArrayList<SceneDrawListener>() // TODO concurrent?
 
     fun projectPoint(x: Int, y: Int): Int {
-        var matrix = getViewProjectionMatrix(camera, canvasWidth, canvasHeight);
+        var width = canvasWidth  / 2;
+        var height = canvasHeight / 2;
+        var matrix = getViewProjectionMatrix(camera, width, height);
         System.out.println("original matrix: " + matrix.toString());
         matrix = matrix.invert();
+        System.out.println("inverted matrix: " + matrix.toString());
 
-        var vec = Vector4f(x / canvasWidth.toFloat()  * 2f - 1f, -(y / canvasHeight.toFloat()) * 2f + 1, 0.5f, 1f)
+        System.out.println(x.toString() + "," + y.toString() + " | " + width.toString() + "x" + height.toString());
+
+        System.out.println()
+        var vec = Vector4f((2f * x.toFloat() / width.toFloat()) - 1f, 1f - (2f * y.toFloat() / height.toFloat()), -1f, 1f)
         var pos = vec.mul(matrix)
         System.out.println("vec: " + vec.toString());
-        System.out.println("matrix: " + matrix.toString());
         System.out.println("pos: " + pos.toString());
 
         pos.w = 1.0f / pos.w;
