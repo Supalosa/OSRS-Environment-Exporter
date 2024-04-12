@@ -47,13 +47,14 @@ import controllers.worldRenderer.entities.StaticObject
 import org.slf4j.LoggerFactory
 import utils.clamp
 
-class SceneRegionBuilder constructor(
+class SceneRegionBuilder(
     private val regionLoader: RegionLoader,
     private val locationsLoader: LocationsLoader,
     private val objectLoader: ObjectLoader,
     private val underlayLoader: UnderlayLoader,
     private val overlayLoader: OverlayLoader,
-    private val objectToModelConverter: ObjectToModelConverter
+    private val objectToModelConverter: ObjectToModelConverter,
+    private val sceneOverrider: SceneOverrider? = null
 ) {
     private val logger = LoggerFactory.getLogger(SceneRegionBuilder::class.java)
 
@@ -273,6 +274,8 @@ class SceneRegionBuilder constructor(
             val x: Int = loc.x
             val y: Int = loc.y
 
+            sceneOverrider?.overrideLocation()
+
             val objectDefinition: ObjectDefinition = objectLoader.get(loc.objId) ?: return@forEach
 
             val width: Int
@@ -302,15 +305,17 @@ class SceneRegionBuilder constructor(
                 var13 = y
                 var14 = y + 1
             }
-            val xSize = (x shl 7) + (width shl 6)
-            val ySize = (y shl 7) + (length shl 6)
+            var xSize = (x shl 7) + (width shl 6)
+            var ySize = (y shl 7) + (length shl 6)
             val swHeight = regionLoader.getTileHeight(z, baseX + var12, baseY + var14)
             val seHeight = regionLoader.getTileHeight(z, baseX + var11, baseY + var14)
             val neHeight = regionLoader.getTileHeight(z, baseX + var12, baseY + var13)
             val nwHeight = regionLoader.getTileHeight(z, baseX + var11, baseY + var13)
             val height = swHeight + seHeight + neHeight + nwHeight shr 2
 
-            val firstEntityOrientation = when (loc.type) {
+            var type = loc.type;
+
+            val firstEntityOrientation = when (type) {
                 LocationType.WALL_CORNER.id,
                 LocationType.DIAGONAL_OUTSIDE_WALL_DECORATION.id,
                 LocationType.DIAGONAL_WALL_DECORATION.id,
@@ -323,7 +328,7 @@ class SceneRegionBuilder constructor(
             }
 
             val staticObject =
-                getEntity(objectDefinition, loc.type, firstEntityOrientation, xSize, height, ySize, z, baseX, baseY)
+                getEntity(objectDefinition, type, firstEntityOrientation, xSize, height, ySize, z, baseX, baseY)
                     ?: return@forEach
 
             when (loc.type) {

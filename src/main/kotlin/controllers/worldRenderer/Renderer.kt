@@ -94,18 +94,19 @@ class Renderer(
     private val pendingGlThreadActions = ConcurrentLinkedQueue<Runnable>()
     val sceneDrawListeners = ArrayList<SceneDrawListener>() // TODO concurrent?
 
-    fun projectPoint(x: Int, y: Int): Int {
-        var width = canvasWidth  / 2;
-        var height = canvasHeight / 2;
-        var matrix = getViewProjectionMatrix(camera, width, height);
+    fun projectPoint(_x: Int, _y: Int): Int {
+        var x = _x * 2;
+        var y = _y * 2;
+        System.out.println("camera position: " + camera.cameraX + "," + camera.cameraY + "," + camera.cameraZ);
+        var matrix = getViewProjectionMatrix(camera, canvasWidth, canvasHeight);
         System.out.println("original matrix: " + matrix.toString());
         matrix = matrix.invert();
         System.out.println("inverted matrix: " + matrix.toString());
 
-        System.out.println(x.toString() + "," + y.toString() + " | " + width.toString() + "x" + height.toString());
+        System.out.println(x.toString() + "," + y.toString() + " | " + canvasWidth.toString() + "x" + canvasHeight.toString());
 
         System.out.println()
-        var vec = Vector4f((2f * x.toFloat() / width.toFloat()) - 1f, 1f - (2f * y.toFloat() / height.toFloat()), -1f, 1f)
+        var vec = Vector4f((2f * x.toFloat() / canvasWidth.toFloat()) - 1f, 1f - (2f * y.toFloat() / canvasHeight.toFloat()), 0f, 1f)
         var pos = vec.mul(matrix)
         System.out.println("vec: " + vec.toString());
         System.out.println("pos: " + pos.toString());
@@ -115,7 +116,12 @@ class Renderer(
         pos.y *= pos.w;
         pos.z *= pos.w;
 
-        System.out.println(pos.x.toString() + "," + pos.y.toString() + "," + pos.z.toString());
+        var wX = pos.x / REGION_SIZE;
+        var wY = pos.y / REGION_SIZE;
+        var wZ = pos.z / REGION_SIZE;
+
+        scene.getRegion(0, 0)?.locationsDefinition
+        System.out.println((wX).toString() + "," + (wY).toString() + "," + (wZ).toString());
         return 0
     }
 
