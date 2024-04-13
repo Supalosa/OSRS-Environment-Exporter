@@ -15,6 +15,7 @@ import controllers.worldRenderer.SceneExporter
 import controllers.worldRenderer.TextureManager
 import models.DebugOptionsModel
 import models.StartupOptions
+import models.scene.InfernoSceneOverrider
 import models.scene.Scene
 import models.scene.SceneRegionBuilder
 import utils.ChunkWriteListener
@@ -44,7 +45,7 @@ class CliExporter(startupOptions: StartupOptions) {
 
         val textureManager = TextureManager(spriteLoader, textureLoader)
         val objectToModelConverter = ObjectToModelConverter(modelLoader, debugOptionsModel)
-        val sceneRegionBuilder = SceneRegionBuilder(regionLoader, locationsLoader, objectLoader, underlayLoader, overlayLoader, objectToModelConverter)
+        val sceneRegionBuilder = SceneRegionBuilder(regionLoader, locationsLoader, objectLoader, underlayLoader, overlayLoader, objectToModelConverter, InfernoSceneOverrider())
 
         scene = Scene(sceneRegionBuilder, debugOptionsModel)
         exporter = SceneExporter(textureManager, debugOptionsModel)

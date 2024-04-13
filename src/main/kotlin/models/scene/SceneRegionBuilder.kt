@@ -26,12 +26,7 @@
 package models.scene
 
 import cache.LocationType
-import cache.definitions.LocationsDefinition
-import cache.definitions.ModelDefinition
-import cache.definitions.ObjectDefinition
-import cache.definitions.OverlayDefinition
-import cache.definitions.RegionDefinition
-import cache.definitions.UnderlayDefinition
+import cache.definitions.*
 import cache.definitions.converters.ObjectToModelConverter
 import cache.loaders.LocationsLoader
 import cache.loaders.ObjectLoader
@@ -54,7 +49,7 @@ class SceneRegionBuilder(
     private val underlayLoader: UnderlayLoader,
     private val overlayLoader: OverlayLoader,
     private val objectToModelConverter: ObjectToModelConverter,
-    private val sceneOverrider: SceneOverrider? = null
+    private val sceneOverrider: SceneOverrider
 ) {
     private val logger = LoggerFactory.getLogger(SceneRegionBuilder::class.java)
 
@@ -269,12 +264,20 @@ class SceneRegionBuilder(
             }
         }
 
-        sceneRegion.locationsDefinition.locations.forEach { loc ->
+        sceneRegion.locationsDefinition.locations.forEach { realLoc ->
+            var loc = realLoc
             val z: Int = loc.z
             val x: Int = loc.x
             val y: Int = loc.y
 
-            sceneOverrider?.overrideLocation()
+            val override = sceneOverrider?.overrideTile(sceneRegion.locationsDefinition.regionId, x, y, z, loc.objId, loc.orientation, loc.type)
+
+            if (override !== null) {
+                loc = Location(override?.objId ?: loc.objId, override?.type ?: loc.type, override?.orientation ?: loc.orientation, loc.x, loc.y, loc.z)
+                if (override?.objId == -1) { // remove
+                    return@forEach
+                }
+            }
 
             val objectDefinition: ObjectDefinition = objectLoader.get(loc.objId) ?: return@forEach
 
@@ -305,17 +308,15 @@ class SceneRegionBuilder(
                 var13 = y
                 var14 = y + 1
             }
-            var xSize = (x shl 7) + (width shl 6)
-            var ySize = (y shl 7) + (length shl 6)
+            val xSize = (x shl 7) + (width shl 6)
+            val ySize = (y shl 7) + (length shl 6)
             val swHeight = regionLoader.getTileHeight(z, baseX + var12, baseY + var14)
             val seHeight = regionLoader.getTileHeight(z, baseX + var11, baseY + var14)
             val neHeight = regionLoader.getTileHeight(z, baseX + var12, baseY + var13)
             val nwHeight = regionLoader.getTileHeight(z, baseX + var11, baseY + var13)
             val height = swHeight + seHeight + neHeight + nwHeight shr 2
 
-            var type = loc.type;
-
-            val firstEntityOrientation = when (type) {
+            val firstEntityOrientation = when (loc.type) {
                 LocationType.WALL_CORNER.id,
                 LocationType.DIAGONAL_OUTSIDE_WALL_DECORATION.id,
                 LocationType.DIAGONAL_WALL_DECORATION.id,
@@ -328,7 +329,7 @@ class SceneRegionBuilder(
             }
 
             val staticObject =
-                getEntity(objectDefinition, type, firstEntityOrientation, xSize, height, ySize, z, baseX, baseY)
+                getEntity(objectDefinition, loc.type, firstEntityOrientation, xSize, height, ySize, z, baseX, baseY)
                     ?: return@forEach
 
             when (loc.type) {
