@@ -1,5 +1,6 @@
 package controllers.worldRenderer
 
+import cache.utils.Vec3F
 import models.FrameRateModel
 import models.config.ConfigOptions
 import models.scene.Scene
@@ -19,6 +20,7 @@ class InputHandler internal constructor(
     private val parent: Component,
     private val camera: Camera,
     private val scene: Scene,
+    private val renderer: Renderer,
     private val configOptions: ConfigOptions,
     private val frameRateModel: FrameRateModel,
 ) : KeyListener, MouseListener, MouseMotionListener {
@@ -144,6 +146,10 @@ class InputHandler internal constructor(
     override fun mouseEntered(e: MouseEvent) {}
     override fun mouseExited(e: MouseEvent) {}
     override fun mousePressed(e: MouseEvent) {
+
+        val point = renderer.projectPoint(e.x, e.y);
+        System.out.println(point);
+
         if (e.button == MouseEvent.BUTTON3) {
             isRightMouseDown = true
             previousMouseX = e.x

@@ -94,7 +94,7 @@ class Scene(
         }
     }
 
-    private fun reloadRegions() {
+    fun reloadRegions() {
         onAnotherThreadCancellable {
             startLoading(numRegions)
             regions.forEach { row ->

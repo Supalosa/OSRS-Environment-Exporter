@@ -31,6 +31,7 @@ import models.FrameRateModel
 import models.StartupOptions
 import models.config.ConfigOptions
 import models.github.GitHubRelease
+import models.scene.InfernoSceneOverrider
 import models.scene.Scene
 import models.scene.SceneRegionBuilder
 import org.slf4j.LoggerFactory
@@ -77,6 +78,7 @@ class MainController constructor(
     private val exporter: SceneExporter
     private val frameRateModel = FrameRateModel(configOptions.powerSavingMode.value)
     private val btnExport: JButton
+    private val btnReload: JButton
 
     val scene: Scene
 
@@ -102,7 +104,8 @@ class MainController constructor(
                 ObjectLoader(cacheLibrary),
                 underlayLoader,
                 overlayLoader,
-                objectToModelConverter
+                objectToModelConverter,
+                InfernoSceneOverrider()
             ),
             debugOptions,
         )
@@ -168,8 +171,13 @@ class MainController constructor(
             mnemonic = 'X'.code
             addActionListener(::exportClicked)
         }
+        btnReload = JButton("Reload").apply {
+            mnemonic = 'R'.code
+            addActionListener(::reloadClicked)
+        }
         JToolBar().apply {
             btnExport.let(::add)
+            btnReload.let(::add)
             JToolBar.Separator().let(::add)
             Box.createGlue().let(::add)
 
@@ -325,6 +333,10 @@ class MainController constructor(
                 }
             }
         }.start()
+    }
+
+    private fun reloadClicked(event: ActionEvent) {
+        scene.reloadRegions();
     }
 
     private fun checkForUpdates() {

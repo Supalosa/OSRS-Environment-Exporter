@@ -26,12 +26,7 @@
 package models.scene
 
 import cache.LocationType
-import cache.definitions.LocationsDefinition
-import cache.definitions.ModelDefinition
-import cache.definitions.ObjectDefinition
-import cache.definitions.OverlayDefinition
-import cache.definitions.RegionDefinition
-import cache.definitions.UnderlayDefinition
+import cache.definitions.*
 import cache.definitions.converters.ObjectToModelConverter
 import cache.loaders.LocationsLoader
 import cache.loaders.ObjectLoader
@@ -47,13 +42,14 @@ import controllers.worldRenderer.entities.StaticObject
 import org.slf4j.LoggerFactory
 import utils.clamp
 
-class SceneRegionBuilder constructor(
+class SceneRegionBuilder(
     private val regionLoader: RegionLoader,
     private val locationsLoader: LocationsLoader,
     private val objectLoader: ObjectLoader,
     private val underlayLoader: UnderlayLoader,
     private val overlayLoader: OverlayLoader,
-    private val objectToModelConverter: ObjectToModelConverter
+    private val objectToModelConverter: ObjectToModelConverter,
+    private val sceneOverrider: SceneOverrider
 ) {
     private val logger = LoggerFactory.getLogger(SceneRegionBuilder::class.java)
 
@@ -268,10 +264,20 @@ class SceneRegionBuilder constructor(
             }
         }
 
-        sceneRegion.locationsDefinition.locations.forEach { loc ->
+        sceneRegion.locationsDefinition.locations.forEach { realLoc ->
+            var loc = realLoc
             val z: Int = loc.z
             val x: Int = loc.x
             val y: Int = loc.y
+
+            val override = sceneOverrider?.overrideTile(sceneRegion.locationsDefinition.regionId, x, y, z, loc.objId, loc.orientation, loc.type)
+
+            if (override !== null) {
+                loc = Location(override?.objId ?: loc.objId, override?.type ?: loc.type, override?.orientation ?: loc.orientation, loc.x, loc.y, loc.z)
+                if (override?.objId == -1) { // remove
+                    return@forEach
+                }
+            }
 
             val objectDefinition: ObjectDefinition = objectLoader.get(loc.objId) ?: return@forEach
 
